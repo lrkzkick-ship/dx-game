@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050816">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>どっち？DX ULTRA</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  color:#fff;
+  text-align:center;
+  font-family:"Segoe UI","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  background:
+    radial-gradient(circle at 20% 10%,rgba(255,0,140,.45),transparent 28%),
+    radial-gradient(circle at 85% 20%,rgba(0,230,255,.42),transparent 30%),
+    radial-gradient(circle at 25% 90%,rgba(255,200,0,.25),transparent 32%),
+    linear-gradient(135deg,#050816,#101936,#050816);
+  padding:14px;
+  overflow-x:hidden;
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:34px 34px;
+  animation:gridMove 12s linear infinite;
+}
+
+@keyframes gridMove{
+  from{background-position:0 0}
+  to{background-position:34px 34px}
+}
+
+.container{
+  max-width:660px;
+  margin:auto;
+  position:relative;
+  z-index:1;
+}
+
+h1{
+  font-size:30px;
+  margin:18px 0 14px;
+  font-weight:900;
+  text-shadow:
+    0 0 10px #00e5ff,
+    0 0 22px #00e5ff,
+    4px 4px 0 #000;
+}
+
+.card{
+  background:linear-gradient(180deg,rgba(18,22,50,.92),rgba(4,7,18,.94));
+  border:1px solid rgba(255,255,255,.24);
+  border-radius:30px;
+  padding:20px;
+  box-shadow:
+    0 0 28px rgba(0,229,255,.25),
+    0 0 70px rgba(255,0,140,.14),
+    0 20px 45px rgba(0,0,0,.65);
+  backdrop-filter:blur(10px);
+}
+
+.title{
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:12px;
+  text-shadow:0 0 12px #00e5ff,3px 3px 0 #000;
+}
+
+.note{
+  font-size:18px;
+  line-height:1.6;
+}
+
+button{
+  width:100%;
+  margin:10px 0;
+  padding:19px 14px;
+  border:none;
+  border-radius:22px;
+  font-size:23px;
+  font-weight:900;
+  color:#fff;
+  background:linear-gradient(135deg,#ff512f,#dd2476 55%,#7f00ff);
+  box-shadow:0 8px 0 #5c1237,0 0 22px rgba(255,61,119,.38);
+  text-shadow:2px 2px 0 #000;
+}
+
+button:active{
+  transform:translateY(6px) scale(.98);
+  box-shadow:0 2px 0 #5c1237;
+}
+
+.subBtn{
+  background:linear-gradient(135deg,#00c6ff,#0072ff,#6a11cb);
+  box-shadow:0 8px 0 #003d82;
+}
+
+.choice{
+  font-size:32px;
+  padding:36px 12px;
+  border-radius:28px;
+  background:linear-gradient(135deg,#ffb300,#ff3d77,#7f00ff);
+}
+
+#scoreArea{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin:14px 0;
+  font-size:18px;
+  font-weight:900;
+}
+
+.scoreBox{
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:18px;
+  padding:10px 6px;
+}
+
+#questionText{
+  font-size:34px;
+  font-weight:900;
+  margin:20px 0;
+  text-shadow:0 0 12px #00e5ff,3px 3px 0 #000;
+}
+
+#message{
+  font-size:23px;
+  font-weight:900;
+  min-height:98px;
+  line-height:1.5;
+  margin-top:10px;
+  text-shadow:2px 2px 0 #000;
+}
+
+.hidden{display:none}
+
+.badge{
+  display:inline-block;
+  margin:6px;
+  padding:9px 14px;
+  border-radius:999px;
+  background:linear-gradient(135deg,rgba(0,229,255,.25),rgba(255,0,140,.22));
+  border:1px solid rgba(255,255,255,.25);
+  font-weight:900;
+}
+
+.rankRow{
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:16px;
+  padding:12px;
+  margin:10px 0;
+  font-size:20px;
+  font-weight:900;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>どっち？2択クイズ<br></h1>
+
+<div id="menu" class="card">
+  <div class="title">ジャンルを選んでね</div>
+  <p class="note">
+  </p>
+  <button class="subBtn" onclick="toggleBgm()">🎵 BGM ON/OFF</button>
+  <button onclick="selectGenre('all')">🔥 全ジャンル</button>
+  <button onclick="selectGenre('life')">🏠 生活・雑学</button>
+  <button onclick="selectGenre('sports')">⚽ スポーツ</button>
+  <button onclick="selectGenre('animal')">🐘 動物</button>
+  <button onclick="selectGenre('world')">🌏 世界・地理</button>
+  <button onclick="selectGenre('anime')">🎮 アニメ・漫画</button>
+  <button onclick="selectGenre('game')">🕹️ ゲーム</button>
+  <button onclick="selectGenre('core')">🧠 コア雑学</button>
+  <button class="subBtn" onclick="showRanking()">🏆 ランキング</button>
+</div>
+
+<div id="difficultyMenu" class="card hidden">
+  <div class="title">難易度を選んでね</div>
+  <div id="selectedGenreBadge" class="badge"></div>
+  <div id="questionCountBadge" class="badge"></div>
+  <button onclick="startGame('easy')">🟢 やさしい / 15秒</button>
+  <button onclick="startGame('normal')">🟡 ふつう / 10秒</button>
+  <button onclick="startGame('hard')">🔴 コア / 7秒</button>
+  <button class="subBtn" onclick="backToGenre()">戻る</button>
+</div>
+
+<div id="gameScreen" class="card hidden">
+  <div id="gameInfo" class="title"></div>
+
+  <div id="scoreArea">
+    <div class="scoreBox" id="score">スコア: 0</div>
+    <div class="scoreBox" id="combo">連続: 0</div>
+    <div class="scoreBox" id="timer">残り: 0.0</div>
+    <div class="scoreBox" id="highScore">最高: 0</div>
+    <div class="scoreBox" id="level">LV: 1</div>
+    <div class="scoreBox" id="livesDisplay">残り: ❤️❤️❤️</div>
+  </div>
+
+  <div id="questionText">選んで！</div>
+  <button class="choice" onclick="answer(0)" id="choiceA"></button>
+  <button class="choice" onclick="answer(1)" id="choiceB"></button>
+  <div id="message"></div>
+
+  <button class="subBtn" onclick="toggleBgm()">🎵 BGM</button>
+  <button class="subBtn" onclick="backToGenre()">やめる</button>
+</div>
+
+<div id="rankingScreen" class="card hidden">
+  <div class="title">🏆 ランキング TOP10</div>
+  <div id="rankingList"></div>
+  <button class="subBtn" onclick="clearRanking()">ランキング削除</button>
+  <button class="subBtn" onclick="backToGenre()">戻る</button>
+</div>
+
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+let gameScore=0;
+let gameCombo=0;
+let lifeCount=3;
+let levelNum=1;
+let highScore=Number(localStorage.getItem("whichDXHighScoreUltra2"))||0;
+let selectedGenre="all";
+let selectedDifficulty="easy";
+let currentQuestions=[];
+let questionPool=[];
+let current=null;
+let timerInterval=null;
+let timeLeft=0;
+let audioCtx=null;
+let bgmOn=false;
+let bgmTimer=null;
+let bgmStep=0;
+
+const genreNames={
+  all:"🔥 全ジャンル",
+  life:"🏠 生活・雑学",
+  sports:"⚽ スポーツ",
+  animal:"🐘 動物",
+  world:"🌏 世界・地理",
+  anime:"🎮 アニメ・漫画",
+  game:"🕹️ ゲーム",
+  core:"🧠 コア雑学"
+};
+
+const difficultyNames={
+  easy:"🟢 やさしい",
+  normal:"🟡 ふつう",
+  hard:"🔴 コア"
+};
+
+const TYPE={
+  amount:{q:"多いのはどっち？",big:true,unit:""},
+  number:{q:"数字が大きいのはどっち？",big:true,unit:""},
+  weight:{q:"重いのはどっち？",big:true,unit:"kg"},
+  speed:{q:"速いのはどっち？",big:true,unit:"km/h"},
+  height:{q:"高いのはどっち？",big:true,unit:"m"},
+  length:{q:"長いのはどっち？",big:true,unit:"km"},
+  area:{q:"広いのはどっち？",big:true,unit:""},
+  age:{q:"長生きなのはどっち？",big:true,unit:"年"},
+  temp:{q:"温度が高いのはどっち？",big:true,unit:"℃"},
+  money:{q:"金額が大きいのはどっち？",big:true,unit:"円"},
+  old:{q:"古いのはどっち？",big:false,unit:"年"},
+  new:{q:"新しいのはどっち？",big:true,unit:"年"}
+};
+
+function I(g,t,n,v,d){return {g,type:t,name:n,val:v,d};}
+
+const RAW=[
+I("life","amount","1年の日数",365,"easy"),
+I("life","amount","1か月の日数",31,"easy"),
+I("life","amount","1週間の日数",7,"easy"),
+I("life","amount","1日の時間",24,"easy"),
+I("life","amount","1時間の分数",60,"easy"),
+I("life","amount","1分の秒数",60,"easy"),
+I("life","amount","1時間の秒数",3600,"easy"),
+I("life","amount","1kmのm数",1000,"easy"),
+I("life","amount","1mのcm数",100,"easy"),
+I("life","amount","1Lのml数",1000,"easy"),
+I("life","amount","500mlペットボトル",500,"easy"),
+I("life","amount","小学校の学年数",6,"easy"),
+I("life","amount","中学校の学年数",3,"easy"),
+I("life","amount","高校の学年数",3,"easy"),
+I("life","amount","大学の学年数",4,"easy"),
+I("life","amount","普通車のタイヤ数",4,"easy"),
+I("life","amount","大型トラックのタイヤ数",10,"easy"),
+I("life","amount","九九 9×9",81,"easy"),
+I("life","amount","九九 8×8",64,"easy"),
+I("life","amount","トランプ枚数",52,"normal"),
+I("life","amount","UNO枚数",108,"normal"),
+I("life","amount","将棋の駒数",40,"normal"),
+I("life","amount","チェスの駒数",32,"normal"),
+I("life","amount","日本の都道府県数",47,"normal"),
+I("life","amount","アメリカ州数",50,"normal"),
+I("life","amount","人間の歯の本数",32,"normal"),
+I("life","amount","肋骨の本数",24,"normal"),
+I("life","amount","ピアノ鍵盤数",88,"normal"),
+I("life","amount","ギター弦の数",6,"normal"),
+I("life","amount","五十音基本文字数",46,"normal"),
+I("life","amount","アルファベット文字数",26,"normal"),
+I("life","amount","1ダース",12,"hard"),
+I("life","amount","1グロス",144,"hard"),
+I("life","amount","1海里のm",1852,"hard"),
+I("life","amount","1マイルのm",1609,"hard"),
+I("life","amount","人間の骨の数",206,"hard"),
+I("life","amount","犬の骨の数",319,"hard"),
+I("life","amount","1ポンドのg",454,"hard"),
+I("life","amount","1オンスのg",28,"hard"),
+I("life","amount","A4長辺mm",297,"normal"),
+I("life","amount","A3長辺mm",420,"normal"),
+I("life","amount","1坪の㎡",3.3,"normal"),
+I("life","amount","1畳の㎡",1.62,"normal"),
+I("life","money","1万円札",10000,"easy"),
+I("life","money","千円札",1000,"easy"),
+I("life","money","500円玉",500,"easy"),
+I("life","money","100円玉",100,"easy"),
+I("life","money","100万円",1000000,"normal"),
+I("life","money","10万円",100000,"normal"),
+I("life","money","1億円",100000000,"hard"),
+I("life","money","1000万円",10000000,"hard"),
+I("life","money","毎日100円を1年",36500,"normal"),
+I("life","money","毎月1000円を1年",12000,"normal"),
+I("life","money","月3万円の年間合計",360000,"normal"),
+I("life","money","月2万円の年間合計",240000,"normal"),
+
+I("sports","amount","サッカー人数",11,"easy"),
+I("sports","amount","野球人数",9,"easy"),
+I("sports","amount","バスケ人数",5,"easy"),
+I("sports","amount","バレー人数",6,"easy"),
+I("sports","amount","ラグビー人数",15,"easy"),
+I("sports","amount","ゴルフ1R穴数",18,"easy"),
+I("sports","amount","野球イニング",9,"easy"),
+I("sports","amount","卓球1ゲーム点数",11,"easy"),
+I("sports","amount","バドミントン1ゲーム点数",21,"easy"),
+I("sports","amount","ボウリング満点",300,"easy"),
+I("sports","amount","ダーツ501",501,"normal"),
+I("sports","amount","箱根駅伝区間数",10,"normal"),
+I("sports","amount","出雲駅伝区間数",6,"normal"),
+I("sports","amount","オリンピック開催間隔",4,"normal"),
+I("sports","amount","W杯開催間隔",4,"normal"),
+I("sports","amount","柔道試合時間",4,"normal"),
+I("sports","amount","ボクシング1R分",3,"normal"),
+I("sports","amount","ゴルフ18ホール",18,"easy"),
+I("sports","length","フルマラソン距離",42.195,"normal"),
+I("sports","length","ハーフマラソン距離",21.0975,"normal"),
+I("sports","length","100m走",100,"easy"),
+I("sports","length","400mトラック1周",400,"easy"),
+I("sports","length","サッカーゴール幅",7.32,"hard"),
+I("sports","length","ハンドボールゴール幅",3,"hard"),
+I("sports","length","バスケコート長さ",28,"hard"),
+I("sports","length","バレーコート長さ",18,"hard"),
+I("sports","length","競泳長水路",50,"normal"),
+I("sports","length","相撲土俵直径",4.55,"hard"),
+I("sports","length","野球塁間",27.4,"hard"),
+I("sports","length","サッカーPK距離",11,"normal"),
+I("sports","speed","チーター",110,"easy"),
+I("sports","speed","人間全力疾走",44,"easy"),
+I("sports","speed","自転車ロード目安",45,"normal"),
+I("sports","speed","プロ野球投球目安",160,"normal"),
+I("sports","speed","サッカーシュート目安",120,"normal"),
+I("sports","speed","F1最高速度目安",350,"hard"),
+I("sports","speed","新幹線最高速度目安",320,"hard"),
+I("sports","speed","競走馬",70,"normal"),
+I("sports","speed","スキー滑降目安",160,"hard"),
+I("sports","speed","マラソン選手目安",21,"normal"),
+I("sports","speed","テニスサーブ目安",250,"hard"),
+I("sports","speed","バドミントンスマッシュ目安",400,"hard"),
+
+I("animal","weight","ゾウ",6000,"easy"),
+I("animal","weight","ライオン",190,"easy"),
+I("animal","weight","ゴリラ",180,"easy"),
+I("animal","weight","パンダ",100,"easy"),
+I("animal","weight","カバ",1500,"normal"),
+I("animal","weight","サイ",2300,"normal"),
+I("animal","weight","キリン",800,"normal"),
+I("animal","weight","クマ",300,"normal"),
+I("animal","weight","犬",20,"easy"),
+I("animal","weight","猫",5,"easy"),
+I("animal","weight","シロナガスクジラ",150000,"hard"),
+I("animal","weight","ダチョウ卵",1500,"hard"),
+I("animal","weight","ニワトリ卵",60,"easy"),
+I("animal","weight","ハムスター",0.1,"easy"),
+I("animal","weight","トラ",220,"normal"),
+I("animal","weight","シマウマ",350,"normal"),
+I("animal","weight","コアラ",10,"easy"),
+I("animal","weight","ウサギ",2,"easy"),
+I("animal","height","キリン",550,"easy"),
+I("animal","height","成人男性",170,"easy"),
+I("animal","height","ゾウ肩高",300,"normal"),
+I("animal","height","ダチョウ",250,"normal"),
+I("animal","height","猫の体高",25,"easy"),
+I("animal","height","馬の体高",160,"normal"),
+I("animal","height","ゴリラ身長",170,"normal"),
+I("animal","length","シロナガスクジラ",3000,"normal"),
+I("animal","length","ジンベエザメ",1200,"normal"),
+I("animal","length","ダイオウイカ",13,"hard"),
+I("animal","length","ホホジロザメ",6,"hard"),
+I("animal","length","アナコンダ",9,"hard"),
+I("animal","length","ワニ",5,"normal"),
+I("animal","speed","チーター",110,"easy"),
+I("animal","speed","馬",88,"easy"),
+I("animal","speed","ダチョウ",70,"normal"),
+I("animal","speed","イルカ",55,"normal"),
+I("animal","speed","金魚",3,"hard"),
+I("animal","speed","カメ",1,"easy"),
+I("animal","speed","ウサギ",60,"normal"),
+I("animal","speed","ライオン",80,"normal"),
+I("animal","age","犬",14,"easy"),
+I("animal","age","猫",15,"easy"),
+I("animal","age","カメ",100,"hard"),
+I("animal","age","ハムスター",3,"easy"),
+I("animal","age","ワニ",70,"normal"),
+I("animal","age","ゾウ",60,"normal"),
+I("animal","age","馬",30,"normal"),
+I("animal","age","金魚",10,"easy"),
+
+I("world","height","富士山",3776,"easy"),
+I("world","height","東京スカイツリー",634,"easy"),
+I("world","height","東京タワー",333,"easy"),
+I("world","height","エベレスト",8848,"easy"),
+I("world","height","キリマンジャロ",5895,"normal"),
+I("world","height","マッターホルン",4478,"normal"),
+I("world","height","マリアナ海溝",10920,"hard"),
+I("world","height","バイカル湖深さ",1642,"hard"),
+I("world","height","琵琶湖最大深度",104,"hard"),
+I("world","height","阿蘇山",1592,"normal"),
+I("world","height","浅間山",2568,"normal"),
+I("world","height","筑波山",877,"easy"),
+I("world","area","北海道",83400,"easy"),
+I("world","area","東京都",2194,"easy"),
+I("world","area","日本",378000,"easy"),
+I("world","area","韓国",100000,"easy"),
+I("world","area","ロシア",1709,"normal"),
+I("world","area","日本 万km²",37.8,"normal"),
+I("world","area","サハラ砂漠",920,"hard"),
+I("world","area","琵琶湖",670,"normal"),
+I("world","area","霞ヶ浦",220,"normal"),
+I("world","area","群馬県",6362,"easy"),
+I("world","area","栃木県",6408,"easy"),
+I("world","area","埼玉県",3798,"easy"),
+I("world","length","ナイル川",6650,"normal"),
+I("world","length","信濃川",367,"easy"),
+I("world","length","アマゾン川",6400,"normal"),
+I("world","length","利根川",322,"easy"),
+I("world","length","山手線一周",34.5,"hard"),
+I("world","length","琵琶湖周囲",235,"hard"),
+I("world","length","東海道新幹線",515,"normal"),
+I("world","length","日本列島の長さ目安",3000,"hard"),
+I("world","amount","東京23区",23,"easy"),
+I("world","amount","大阪市の区数",24,"easy"),
+I("world","amount","アフリカ国数",54,"normal"),
+I("world","amount","ヨーロッパ国数",44,"normal"),
+I("world","amount","日本の都道府県数",47,"easy"),
+I("world","amount","四国の県数",4,"easy"),
+
+I("anime","amount","ドラゴンボールの数",7,"easy"),
+I("anime","amount","ポケモン初代御三家",3,"easy"),
+I("anime","amount","鬼滅の柱人数",9,"easy"),
+I("anime","amount","七武海の人数",7,"easy"),
+I("anime","amount","護廷十三隊",13,"normal"),
+I("anime","amount","十二鬼月",12,"normal"),
+I("anime","amount","上弦の鬼",6,"hard"),
+I("anime","amount","下弦の鬼",6,"hard"),
+I("anime","amount","九尾の尾",9,"normal"),
+I("anime","amount","八尾の尾",8,"normal"),
+I("anime","amount","ナルト第七班",7,"easy"),
+I("anime","amount","三大将",3,"easy"),
+I("anime","number","ピカチュウ図鑑番号",25,"easy"),
+I("anime","number","フシギダネ図鑑番号",1,"easy"),
+I("anime","number","ヒトカゲ図鑑番号",4,"easy"),
+I("anime","number","ゼニガメ図鑑番号",7,"easy"),
+I("anime","number","ミュウツー図鑑番号",150,"normal"),
+I("anime","number","ミュウ図鑑番号",151,"normal"),
+I("anime","number","ハンター試験ゴン番号",405,"hard"),
+I("anime","number","ハンター試験キルア番号",99,"hard"),
+I("anime","number","ルフィ ギア4",4,"hard"),
+I("anime","number","悟空 超サイヤ人3",3,"hard"),
+I("anime","old","ONE PIECE開始年",1997,"hard"),
+I("anime","old","NARUTO開始年",1999,"hard"),
+I("anime","old","BLEACH開始年",2001,"hard"),
+I("anime","old","鬼滅の刃開始年",2016,"normal"),
+I("anime","old","ドラゴンボール開始年",1984,"normal"),
+I("anime","old","SLAM DUNK開始年",1990,"normal"),
+I("anime","height","空島の高度",10000,"hard"),
+I("anime","height","富士山",3776,"easy"),
+
+I("game","amount","初代ポケモン数",151,"easy"),
+I("game","amount","金銀追加ポケモン数",100,"normal"),
+I("game","amount","マリオカート64キャラ数",8,"easy"),
+I("game","amount","初代スマブラ人数",12,"normal"),
+I("game","amount","Switch Joy-Con数",2,"easy"),
+I("game","amount","PS5通常コントローラー数",1,"easy"),
+I("game","amount","ドラクエ1最大レベル",30,"hard"),
+I("game","amount","FF1最大レベル",50,"hard"),
+I("game","old","ファミコン発売年",1983,"normal"),
+I("game","old","スーファミ発売年",1990,"normal"),
+I("game","old","PS1発売年",1994,"normal"),
+I("game","old","Nintendo64発売年",1996,"normal"),
+I("game","old","ゲームボーイ発売年",1989,"hard"),
+I("game","old","GBA発売年",2001,"hard"),
+I("game","old","ポケモン赤緑発売年",1996,"hard"),
+I("game","old","金銀発売年",1999,"hard"),
+I("game","old","ドラクエ1発売年",1986,"normal"),
+I("game","old","FF1発売年",1987,"normal"),
+I("game","old","マリオ初代発売年",1985,"easy"),
+I("game","old","Minecraft正式版年",2011,"easy"),
+I("game","old","スマブラDX発売年",2001,"hard"),
+I("game","old","スマブラX発売年",2008,"hard"),
+I("game","old","スプラ2発売年",2017,"hard"),
+I("game","old","スプラ3発売年",2022,"hard"),
+I("game","height","Minecraft最大高度",320,"normal"),
+I("game","number","ゲームボーイ画面ドット横",160,"hard"),
+I("game","number","ファミコン色数目安",54,"hard"),
+I("game","number","スーファミ同時発色数目安",32768,"hard"),
+
+I("core","speed","光速",300000,"easy"),
+I("core","speed","音速",340,"easy"),
+I("core","speed","新幹線最高速度",320,"easy"),
+I("core","speed","F1最高速度",350,"normal"),
+I("core","speed","チーター",110,"easy"),
+I("core","number","円周率",3.14,"easy"),
+I("core","number","ネイピア数",2.71,"easy"),
+I("core","number","黄金比",1.618,"normal"),
+I("core","number","白銀比",1.414,"normal"),
+I("core","number","水素の原子番号",1,"easy"),
+I("core","number","酸素の原子番号",8,"easy"),
+I("core","number","炭素の原子番号",6,"normal"),
+I("core","number","鉄の原子番号",26,"normal"),
+I("core","amount","人体の染色体本数",46,"normal"),
+I("core","amount","人間の歯",32,"easy"),
+I("core","amount","太陽系惑星数",8,"easy"),
+I("core","amount","地球型惑星数",4,"easy"),
+I("core","amount","木星の衛星数目安",95,"hard"),
+I("core","amount","地球の衛星数",1,"easy"),
+I("core","length","1天文単位 万km",14960,"normal"),
+I("core","length","地球月距離 万km",38,"normal"),
+I("core","amount","冥王星公転年",248,"hard"),
+I("core","amount","海王星公転年",165,"hard"),
+I("core","temp","雷の温度",30000,"hard"),
+I("core","temp","太陽表面温度",5500,"hard"),
+I("core","temp","水の沸点",100,"easy"),
+I("core","temp","水の凝固点",0,"easy"),
+I("core","temp","絶対零度",-273.15,"hard")
+];
+
+function buildQuestions(){
+  const out=[];
+  for(let i=0;i<RAW.length;i++){
+    for(let j=i+1;j<RAW.length;j++){
+      const x=RAW[i],y=RAW[j];
+      if(x.g!==y.g||x.type!==y.type||x.val===y.val) continue;
+      out.push({
+        g:x.g,
+        type:x.type,
+        d:harder(x.d,y.d),
+        a:x.name,
+        av:x.val,
+        b:y.name,
+        bv:y.val
+      });
+    }
+  }
+  return out;
+}
+
+function harder(a,b){
+  const r={easy:1,normal:2,hard:3};
+  return r[a]>=r[b]?a:b;
+}
+
+const QUESTIONS=buildQuestions();
+
+function selectGenre(g){
+  selectedGenre=g;
+  $("menu").classList.add("hidden");
+  $("rankingScreen").classList.add("hidden");
+  $("difficultyMenu").classList.remove("hidden");
+  $("selectedGenreBadge").innerText=genreNames[g];
+  $("questionCountBadge").innerText="問題数: "+countGenre(g)+"問";
+}
+
+function countGenre(g){
+  return g==="all"?QUESTIONS.length:QUESTIONS.filter(q=>q.g===g).length;
+}
+
+function startGame(d){
+  selectedDifficulty=d;
+  gameScore=0;
+  gameCombo=0;
+  lifeCount=3;
+  levelNum=1;
+
+  const rank={easy:1,normal:2,hard:3};
+
+  currentQuestions=QUESTIONS.filter(q=>
+    (selectedGenre==="all"||q.g===selectedGenre) && rank[q.d]<=rank[d]
+  );
+
+  questionPool=[...currentQuestions];
+  shuffle(questionPool);
+
+  $("difficultyMenu").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  $("gameInfo").innerText=genreNames[selectedGenre]+" / "+difficultyNames[d]+" / "+currentQuestions.length+"問";
+
+  updateAll();
+  nextQuestion();
+}
+
+function nextQuestion(){
+  clearInterval(timerInterval);
+
+  if(questionPool.length===0){
+    questionPool=[...currentQuestions];
+    shuffle(questionPool);
+  }
+
+  current=questionPool.pop();
+
+  if(Math.random()<0.5){
+    current.topText=current.a;
+    current.bottomText=current.b;
+    current.topVal=current.av;
+    current.bottomVal=current.bv;
+  }else{
+    current.topText=current.b;
+    current.bottomText=current.a;
+    current.topVal=current.bv;
+    current.bottomVal=current.av;
+  }
+
+  $("questionText").innerText=TYPE[current.type].q;
+  $("choiceA").innerText=current.topText;
+  $("choiceB").innerText=current.bottomText;
+  $("message").innerText="";
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timerInterval);
+
+  let base=selectedDifficulty==="easy"?15:selectedDifficulty==="normal"?10:7;
+  timeLeft=base;
+
+  $("timer").innerText="残り: "+timeLeft.toFixed(1);
+
+  timerInterval=setInterval(()=>{
+    timeLeft-=0.1;
+    if(timeLeft<=0){
+      clearInterval(timerInterval);
+      $("timer").innerText="残り: 0.0";
+      loseLife("時間切れ！");
+      return;
+    }
+    $("timer").innerText="残り: "+timeLeft.toFixed(1);
+  },100);
+}
+
+function answer(choice){
+  clearInterval(timerInterval);
+
+  const t=TYPE[current.type];
+  const topWins=t.big?current.topVal>current.bottomVal:current.topVal<current.bottomVal;
+  const bottomWins=t.big?current.bottomVal>current.topVal:current.bottomVal<current.topVal;
+  const correct=topWins?0:bottomWins?1:choice;
+
+  if(choice===correct){
+    beep("ok");
+    flash("ok");
+    gameScore++;
+    gameCombo++;
+
+    const newLevel=Math.floor(gameScore/10)+1;
+    if(newLevel>levelNum){
+      levelNum=newLevel;
+      showFloating("LEVEL UP!!");
+    }
+
+    if(gameScore>highScore){
+      highScore=gameScore;
+      localStorage.setItem("whichDXHighScoreUltra2",highScore);
+    }
+
+    updateAll();
+    showCombo();
+
+    $("message").innerHTML="正解！<br>"+answerText();
+    setTimeout(nextQuestion,1050);
+  }else{
+    loseLife("不正解！");
+  }
+}
+
+function answerText(){
+  const u=TYPE[current.type].unit||"";
+  return current.topText+"："+current.topVal+u+"<br>"+current.bottomText+"："+current.bottomVal+u;
+}
+
+function loseLife(text){
+  clearInterval(timerInterval);
+  beep("ng");
+  flash("ng");
+
+  lifeCount--;
+  gameCombo=0;
+  updateAll();
+
+  $("message").innerHTML=text+"<br>"+answerText()+"<br>残りライフ："+lifeCount;
+
+  if(lifeCount>0){
+    setTimeout(nextQuestion,1500);
+  }else{
+    setTimeout(()=>{
+      saveRanking();
+      alert("ゲームオーバー！\nスコア: "+gameScore+"\n最高スコア: "+highScore);
+      backToGenre();
+    },1400);
+  }
+}
+
+function updateAll(){
+  $("score").innerText="スコア: "+gameScore;
+  $("combo").innerText="連続: "+gameCombo;
+  $("highScore").innerText="最高: "+highScore;
+  $("level").innerText="LV: "+levelNum;
+  $("livesDisplay").innerText="残り: "+"❤️".repeat(lifeCount);
+}
+
+function backToGenre(){
+  clearInterval(timerInterval);
+  $("gameScreen").classList.add("hidden");
+  $("difficultyMenu").classList.add("hidden");
+  $("rankingScreen").classList.add("hidden");
+  $("menu").classList.remove("hidden");
+}
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+}
+
+function showFloating(text){
+  const div=document.createElement("div");
+  div.innerText=text;
+  div.style.position="fixed";
+  div.style.top="32%";
+  div.style.left="50%";
+  div.style.transform="translate(-50%,-50%)";
+  div.style.fontSize="42px";
+  div.style.fontWeight="900";
+  div.style.color="#fff";
+  div.style.zIndex="9999";
+  div.style.textShadow="0 0 18px #00e5ff,4px 4px 0 #000";
+  document.body.appendChild(div);
+  setTimeout(()=>div.remove(),900);
+}
+
+function showCombo(){
+  if(gameCombo>=5){
+    showFloating("🔥 "+gameCombo+" COMBO!!");
+  }
+}
+
+function flash(type){
+  const old=document.body.style.background;
+  document.body.style.background=type==="ok"
+    ?"linear-gradient(135deg,#00ff87,#60efff)"
+    :"linear-gradient(135deg,#ff1744,#300)";
+  setTimeout(()=>{document.body.style.background=old;},160);
+}
+
+function getAudioCtx(){
+  if(!audioCtx){
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+function playTone(freq,duration,volume,type="sine"){
+  const c=getAudioCtx();
+  const o=c.createOscillator();
+  const g=c.createGain();
+  o.type=type;
+  o.connect(g);
+  g.connect(c.destination);
+  o.frequency.value=freq;
+  g.gain.setValueAtTime(0,c.currentTime);
+  g.gain.linearRampToValueAtTime(volume,c.currentTime+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+duration/1000);
+  o.start();
+  setTimeout(()=>o.stop(),duration);
+}
+
+function beep(type){
+  if(type==="ok"){
+    playTone(660,120,.07,"sine");
+    setTimeout(()=>playTone(880,140,.06,"sine"),90);
+  }else{
+    playTone(180,260,.08,"triangle");
+  }
+}
+
+function toggleBgm(){
+  getAudioCtx();
+
+  if(bgmOn){
+    clearInterval(bgmTimer);
+    bgmOn=false;
+    return;
+  }
+
+  bgmOn=true;
+  bgmStep=0;
+
+  const melody=[392,440,523,440,392,330,349,392];
+  const bass=[196,196,220,220,174,174,196,196];
+
+  bgmTimer=setInterval(()=>{
+    if(!bgmOn)return;
+
+    const m=melody[bgmStep%melody.length];
+    const b=bass[bgmStep%bass.length];
+
+    playTone(b,180,.025,"sine");
+    playTone(m,140,.022,"sine");
+
+    bgmStep++;
+  },260);
+}
+
+function getRanking(){
+  return JSON.parse(localStorage.getItem("whichDXRankingUltra2")||"[]");
+}
+
+function saveRanking(){
+  if(gameScore<=0)return;
+
+  let name=prompt("ランキングに名前を入れてね", "PLAYER");
+  if(!name)name="PLAYER";
+
+  const ranking=getRanking();
+
+  ranking.push({
+    name:name,
+    score:gameScore,
+    genre:genreNames[selectedGenre],
+    difficulty:difficultyNames[selectedDifficulty],
+    date:new Date().toLocaleDateString()
+  });
+
+  ranking.sort((a,b)=>b.score-a.score);
+
+  localStorage.setItem("whichDXRankingUltra2",JSON.stringify(ranking.slice(0,10)));
+}
+
+function showRanking(){
+  $("menu").classList.add("hidden");
+  $("difficultyMenu").classList.add("hidden");
+  $("gameScreen").classList.add("hidden");
+  $("rankingScreen").classList.remove("hidden");
+
+  const ranking=getRanking();
+  const box=$("rankingList");
+
+  if(ranking.length===0){
+    box.innerHTML="<div class='rankRow'>まだ記録なし</div>";
+    return;
+  }
+
+  box.innerHTML=ranking.map((r,i)=>`
+    <div class="rankRow">
+      ${i+1}位　${r.name}<br>
+      スコア：${r.score}<br>
+      ${r.genre} / ${r.difficulty}<br>
+      ${r.date}
+    </div>
+  `).join("");
+}
+
+function clearRanking(){
+  if(confirm("ランキングを削除する？")){
+    localStorage.removeItem("whichDXRankingUltra2");
+    showRanking();
+  }
+}
+</script>
+</body>
+</html>
